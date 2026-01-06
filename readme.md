@@ -18,14 +18,15 @@ The entire pipeline is orchestrated via Airflow with idempotent design, automate
 
 ### Architecture
 ---
-```
+
+```mermaid
 erDiagram
     %% ===========================================
     %% REAL MADRID MATCH PREDICTION - DATA MODEL
     %% ===========================================
 
     TEAMS {
-        string team_id PK "FBref team ID (e.g., 53a2f082)"
+        string team_id PK "FBref team ID"
         string team_name "Official team name"
         string team_name_short "Short name"
         string season "Season participated"
@@ -34,7 +35,7 @@ erDiagram
 
     TEAM_SEASON_STATS {
         string team_id PK,FK "Links to TEAMS"
-        string season PK "Season (e.g., 2024-25)"
+        string season PK "Season (2024-25)"
         int matches_played "MP"
         int wins "W"
         int draws "D"
@@ -43,37 +44,23 @@ erDiagram
         int goals_against "GA"
         int goal_difference "GD"
         int points "Pts"
-        float points_per_match "Pts/MP"
         float xg "Expected Goals"
         float xga "Expected Goals Against"
         float xgd "xG Difference"
-        float xgd_per_90 "xGD/90"
-        int goals "Total goals scored"
-        int assists "Total assists"
-        float npxg "Non-Penalty xG"
-        int progressive_carries "PrgC"
-        int progressive_passes "PrgP"
         int shots "Total shots"
         int shots_on_target "SoT"
-        float shot_on_target_pct "SoT%"
-        float goals_per_shot "G/Sh"
-        float xg_per_shot "xG/Sh"
+        float shot_on_target_pct "SoT pct"
         int tackles "Tkl"
         int tackles_won "TklW"
         int interceptions "Int"
         int blocks "Blocks"
         int clearances "Clr"
         int errors "Err"
-        int yellow_cards "CrdY"
-        int red_cards "CrdR"
-        int fouls "Fls"
-        int aerials_won "Won"
-        float aerials_won_pct "Won%"
         timestamp scraped_at "When scraped"
     }
 
     MATCHES {
-        string match_id PK "Unique match identifier"
+        string match_id PK "Unique match ID"
         date date "Match date"
         string season FK "Links to season"
         string competition "La Liga"
@@ -81,45 +68,30 @@ erDiagram
         string home_team FK "Links to TEAMS"
         string away_team FK "Links to TEAMS"
         string venue "Stadium name"
-        string status "SCHEDULED/COMPLETED"
+        string status "SCHEDULED or COMPLETED"
         int home_goals "Goals by home team"
         int away_goals "Goals by away team"
-        string winner "HOME/AWAY/DRAW"
-        string real_madrid_result "WIN/DRAW/LOSS (target variable)"
+        string winner "HOME or AWAY or DRAW"
+        string real_madrid_result "WIN or DRAW or LOSS"
         float home_xg "Home expected goals"
         float away_xg "Away expected goals"
-        int home_possession "Home possession %"
-        int away_possession "Away possession %"
+        int home_possession "Home possession pct"
+        int away_possession "Away possession pct"
         int home_shots "Home total shots"
         int away_shots "Away total shots"
         int home_shots_on_target "Home SoT"
         int away_shots_on_target "Away SoT"
-        int home_passes_completed "Home passes"
-        int away_passes_completed "Away passes"
-        float home_pass_completion_pct "Home pass %"
-        float away_pass_completion_pct "Away pass %"
-        int home_corners "Home corners"
-        int away_corners "Away corners"
-        int home_fouls "Home fouls"
-        int away_fouls "Away fouls"
-        int home_yellow_cards "Home yellows"
-        int away_yellow_cards "Away yellows"
-        int home_red_cards "Home reds"
-        int away_red_cards "Away reds"
-        int attendance "Match attendance"
-        string source_url "FBref URL"
         timestamp scraped_at "When scraped"
     }
 
     PREDICTIONS {
         string prediction_id PK "Unique prediction ID"
         string match_id FK "Links to MATCHES"
-        string predicted_outcome "WIN/DRAW/LOSS"
-        float confidence_win "P(Real Madrid Win)"
-        float confidence_draw "P(Draw)"
-        float confidence_loss "P(Real Madrid Loss)"
+        string predicted_outcome "WIN or DRAW or LOSS"
+        float confidence_win "P of Real Madrid Win"
+        float confidence_draw "P of Draw"
+        float confidence_loss "P of Real Madrid Loss"
         string model_version "Model identifier"
-        json features_used "Feature snapshot"
         timestamp predicted_at "When prediction made"
     }
 
@@ -129,8 +101,7 @@ erDiagram
         string prediction_id FK "Links to PREDICTIONS"
         string predicted_outcome "What model predicted"
         string actual_outcome "What actually happened"
-        boolean was_correct "Did prediction match?"
-        float confidence_of_prediction "Confidence of predicted outcome"
+        boolean was_correct "Did prediction match"
         timestamp validated_at "When validated"
     }
 
@@ -144,4 +115,14 @@ erDiagram
     MATCHES ||--o| PREDICTIONS : "has prediction"
     MATCHES ||--o| PREDICTION_VALIDATION : "has validation"
     PREDICTIONS ||--|| PREDICTION_VALIDATION : "validated by"
-    ```
+```
+
+## Tables
+
+| Table | Purpose | Source |
+|-------|---------|--------|
+| **TEAMS** | Reference table for all La Liga teams | FBref La Liga Stats page |
+| **TEAM_SEASON_STATS** | Flattened squad stats (standings + shooting + defense) | FBref La Liga Stats page |
+| **MATCHES** | All Real Madrid matches (past + scheduled) | FBref RM Fixtures + Match Details |
+| **PREDICTIONS** | Model outputs before each match | ML Model |
+| **PREDICTION_VALIDATION** | Actual vs predicted comparison | Pipeline |
