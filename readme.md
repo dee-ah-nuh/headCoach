@@ -126,3 +126,9 @@ erDiagram
 | **MATCHES** | All Real Madrid matches (past + scheduled) | FBref RM Fixtures + Match Details |
 | **PREDICTIONS** | Model outputs before each match | ML Model |
 | **PREDICTION_VALIDATION** | Actual vs predicted comparison | Pipeline |
+
+
+## Airflow Set Up
+
+<img width="1230" height="721" alt="Screenshot 2026-01-06 at 6 49 49 PM" src="https://github.com/user-attachments/assets/e8576cbf-35aa-4d3f-8850-24343128e034" />
+
